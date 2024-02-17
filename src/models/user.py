@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, func, String, Boolean
-
+from sqlalchemy.orm import relationship
 
 from .base import Base
-
 
 
 class User(Base):
@@ -19,5 +18,4 @@ class User(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     confirmed = Column(Boolean, default=False)
     ban = Column(Boolean, default=False)
-
-
+    images = relationship("Image", back_populates="user")

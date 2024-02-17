@@ -7,7 +7,7 @@ class MailSettings(BaseSettings):
     username: str='user@gmail.com'
     password: str='password'
     mail_from: str='user'
-    port: int='1234'
+    port: int=1234
     server: str='smtp.gmail.com'
 
     # in .env file all constants for mailing wil be 
