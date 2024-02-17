@@ -10,7 +10,7 @@ class User(Base):
 
     # required fields for each table
     id = Column(Integer, primary_key=True)
-    username = Column(String(50))
+    username = Column(String(50), nullable=False, unique=True)
     email = Column(String(150), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     avatar = Column(String(255), nullable=True)
