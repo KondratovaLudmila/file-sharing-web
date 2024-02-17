@@ -18,5 +18,4 @@ class User(Base):
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     confirmed = Column(Boolean, default=False)
     ban = Column(Boolean, default=False)
-
     images = relationship("Image", back_populates="user")
