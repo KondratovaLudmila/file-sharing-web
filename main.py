@@ -5,10 +5,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from src.dependencies.db import get_db
+from src.routes import images
 
 
 app = FastAPI()
 
+app.include_router(images.router)
 
 @app.post("/halthchecker")
 async def halthchecker(db: Session=Depends(get_db)):
