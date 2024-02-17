@@ -1,0 +1,19 @@
+fastapi==0.109.2
+uvicorn==0.27.1
+sqlalchemy==2.0.27
+pydantic~=2.6.1
+PyJWT~=2.8.0
+python-multipart==0.0.6
+dnspython==2.5.0
+email-validator==2.1.0.post1
+idna==3.6
+certifi==2024.2.2
+cloudinary==1.38.0
+six==1.16.0
+urllib3==2.2.0
+python-dotenv==1.0.1
+aioredis==2.0.1
+aiofiles>=0.8.0
+pydantic_settings==2.1.0
+alembic==1.13.1
+psycopg2-binary == 2.9.9
