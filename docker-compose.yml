@@ -10,17 +10,15 @@ services:
       - .env
     depends_on:
       - db
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/dbname
 
   db:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
 
 volumes:
   postgres_data:

@@ -17,3 +17,5 @@ aiofiles>=0.8.0
 pydantic_settings==2.1.0
 alembic==1.13.1
 psycopg2-binary == 2.9.9
+cryptography==41.0.5
+paramiko==3.4.0
