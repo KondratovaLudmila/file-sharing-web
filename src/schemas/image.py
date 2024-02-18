@@ -4,7 +4,7 @@ from typing import List, Optional
 
 
 from .tag import TagResponse
-
+from .comment_example import Comment 
 
 class ImageResponseModel(BaseModel):
     id: int
@@ -12,10 +12,10 @@ class ImageResponseModel(BaseModel):
     description: str
     url: str
     tags: List[TagResponse]
-
+    comments: List[Comment] = []
     created_at: datetime
     updated_at: datetime
-
+    
     class Config:
         from_attributes = True
 
