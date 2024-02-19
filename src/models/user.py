@@ -1,7 +1,14 @@
-from sqlalchemy import Column, Integer, DateTime, func, String, Boolean
+import enum
+from sqlalchemy import Column, Integer, DateTime, func, String, Boolean, Enum
 from sqlalchemy.orm import relationship
 
 from .base import Base
+
+
+class Role(enum.Enum):
+    admin = 'admin'
+    moderator = 'moderator'
+    user = 'user'
 
 
 class User(Base):
@@ -20,3 +27,5 @@ class User(Base):
     ban = Column(Boolean, default=False)
     images = relationship("Image", back_populates="user")
     # comments = relationship("Comment", back_populates="user")
+    role = Column(Enum(Role), default=Role.user, nullable=True)
+    
