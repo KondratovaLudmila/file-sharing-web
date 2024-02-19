@@ -30,7 +30,8 @@ class Image(Base):
 
     tags = relationship("Tag", secondary=image_m2m_tag, backref="images")
 
-
+    comments = relationship("Comment", back_populates="image")
+    
 class Tag(Base):
     __tablename__ = "tags"
 

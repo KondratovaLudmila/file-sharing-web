@@ -19,3 +19,4 @@ class User(Base):
     confirmed = Column(Boolean, default=False)
     ban = Column(Boolean, default=False)
     images = relationship("Image", back_populates="user")
+    # comments = relationship("Comment", back_populates="user")
