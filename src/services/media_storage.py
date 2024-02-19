@@ -36,7 +36,7 @@ class MediaCloud:
 
         return public_id
 
-    async def avatar_upload(self, file, identifier=None) -> CloudinaryImage:
+    async def avatar_upload(self, file, identifier) -> CloudinaryImage:
         """
         The avatar_upload function uploads an avatar image to Cloudinary, 
         and returns an uploaded CloudinaryImage object.
@@ -55,15 +55,15 @@ class MediaCloud:
                     "format": "jpeg",
                     }
         
-        if identifier:
-            options.update({"public_id": identifier})
-        else:
-            options.update({"folder": self.FOLDER + "/avatar"})
+        public_id = f'{self.FOLDER}/avatar/{identifier}'
+        
+        options.update({"public_id": public_id})
         
         image = upload_image(file, **options)
         
         return image
     
+
     async def user_image_upload(self, file, public_id: str, transformations: dict=None):
         """
         The user_image_upload function uploads an image to Cloudinary.
