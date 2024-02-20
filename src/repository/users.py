@@ -6,7 +6,7 @@ from typing import Optional, List
 from sqlalchemy import inspect, or_
 
 
-class UserRepository:
+class UserRepository(AbstractRepository):
     def __init__(self, db: Session):
         self.db = db
 
