@@ -39,6 +39,10 @@ class UserRepository(AbstractRepository):
         return self.db.query(User).filter(User.id == user_id).first()
 
 
+    async def get_username(self, user_name: str) -> Optional[User]:
+        return self.db.query(User).filter(User.username == user_name).first()
+
+
     async def get_many(self, query: str) -> List[User]:
         query = query.lower()
         users = self.db.query(User).filter(
