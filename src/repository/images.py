@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import update
 from uuid import uuid4
@@ -5,7 +6,7 @@ from uuid import uuid4
 from .base_repository import AbstractRepository
 from ..models.image import Image
 from ..models.user import User
-from ..schemas.image import ImageDescriptionUpdate
+from ..schemas.image import ImageDescriptionUpdate, ImageTransfornModel
 from ..services.media_storage import storage
 
 
@@ -104,15 +105,54 @@ class Images(AbstractRepository):
     async def get_many(self):
         """
         The get_many function returns all images associated with a user.
-            
         
         :param self: Represent the instance of the class
         :return: A list of objects
-        :doc-author: Trelent
         """
         images = self.db.query(self.model).filter(self.model.user==self.user).all()
 
         return images
+    
+
+    async def transform(self, pk: int, transform_model: ImageTransfornModel):
+        """
+        The transform function takes an image and applies a transformation to it.
+        
+        :param self: Refer to the class instance itself
+        :param pk: int: Get the image from the database
+        :param transform_model: ImageTransfornModel: Pass in the model that is used to transform the image
+        :return: The transformed image
+        """
+        
+        image = await self.get_single(pk)
+
+        if not image:
+            return None
+        
+        identifier = uuid4().hex
+        public_id = storage.get_public_id(self.user.username, identifier)
+        
+        try:
+            img = await storage.image_transform(image.url, transform_model.model_dump(), public_id)
+            transformed_image = self.model(user=self.user, 
+                                       url=img.url, 
+                                       identifier=identifier, 
+                                       description=image.description)
+            self.db.add(transformed_image)
+            self.db.commit()
+            self.db.refresh(transformed_image)
+        
+        except Exception as err:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(err))
+
+        return transformed_image
+
+
+        
+        
+
+        
+
     
 
         

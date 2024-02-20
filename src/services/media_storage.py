@@ -3,6 +3,7 @@ from enum import Enum
 import cloudinary
 from cloudinary.uploader import upload_image, destroy
 from cloudinary import CloudinaryImage
+from cloudinary.exceptions import Error
 
 
 from src.conf.config import settings
@@ -51,7 +52,7 @@ class MediaCloud:
                     "overwrite": True,
                     "width": 300,
                     "crop": "thumb", 
-                    "gravity": "faces",
+                    "gravity": "face",
                     "format": "jpeg",
                     }
         
@@ -97,12 +98,22 @@ class MediaCloud:
         :param self: Represent the instance of a class
         :param public_id: str: Specify the public id of the media to be removed
         :return: response object
-        :doc-author: Trelent
         """
         result = destroy(public_id)
         
         return result
     
+
+    async def image_transform(self, 
+                              url: str, 
+                              transformations: dict, 
+                              new_public_id: str=None) -> CloudinaryImage:
+        transformations.update({"overwrite": False,
+                                "public_id": new_public_id})
+        
+        image = upload_image(url, **transformations)
+        
+        return image
 
 storage = MediaCloud()
         
