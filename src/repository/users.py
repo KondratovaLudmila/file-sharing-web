@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from ..models.user import User
+from ..models.user import User, Role, Enum
 from ..schemas.user import UserCreate, UserUpdate
 from .base_repository import AbstractRepository
 from typing import Optional, List
@@ -14,7 +14,7 @@ class UserRepository(AbstractRepository):
         user = User(username=username, email=email, password=password, avatar=avatar)
         existing_users_count = self.db.query(func.count(User.id)).scalar()
         if existing_users_count == 0:
-            user.role = "admin"
+            user.role = Role.admin.value
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)
