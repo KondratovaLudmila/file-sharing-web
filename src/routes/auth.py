@@ -3,7 +3,7 @@ from services.auth import oauth2_scheme,settings, create_access_token, get_curre
 from sqlalchemy.orm import Session
 from dependencies.db import SessionLocal
 
-router = APIRouter()
+router = APIRouter(prefix="/auth",tags=["Authentication"])
 
 @router.post("/auth/signup", pass_credentials=True)
 async def signup():
