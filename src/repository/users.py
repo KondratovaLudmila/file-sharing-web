@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from ..models.user import User
+from ..models.user import User, Role, Enum
 from ..schemas.user import UserCreate, UserUpdate
 from .base_repository import AbstractRepository
 from typing import Optional, List
-from sqlalchemy import inspect, or_
+from sqlalchemy import inspect, or_, func
 
 
 class UserRepository(AbstractRepository):
@@ -12,6 +12,9 @@ class UserRepository(AbstractRepository):
 
     async def create(self, username: str, email: str, password: str, avatar: str = None) -> User:
         user = User(username=username, email=email, password=password, avatar=avatar)
+        existing_users_count = self.db.query(func.count(User.id)).scalar()
+        if existing_users_count == 0:
+            user.role = Role.admin.value
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)

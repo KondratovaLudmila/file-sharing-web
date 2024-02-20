@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
     password: str
 
 
+
 class UserUpdate(BaseModel):
     email: EmailStr
     password: str
