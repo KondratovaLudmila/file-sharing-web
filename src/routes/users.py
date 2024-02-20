@@ -51,3 +51,11 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
+@router.get('/users/{username}', response_model=User)
+async def get_user_by_username(username: str, db: Session = Depends(get_db)):
+    user_repo = UserRepository(db)
+    user = await user_repo.get_username(username)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
