@@ -20,7 +20,7 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/signin", response_model=dict)
 async def signin(username: str, password: str, db: Session = Depends(get_db)):
-    user = UserRepository(db).get_username(username)
+    user = await UserRepository(db).get_username(username)
     
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
@@ -29,7 +29,7 @@ async def signin(username: str, password: str, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token({"sub": username})
 
     user_repo = UserRepository(db)
-    user_repo.update(user, refresh_token=refresh_token)
+    await user_repo.update(user, refresh_token=refresh_token)
 
     return {
         "access_token": create_access_token(data={"sub": username}),
