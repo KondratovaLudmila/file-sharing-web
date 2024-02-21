@@ -1,26 +1,44 @@
-from fastapi import Depends, APIRouter, HTTPException
-from ..services.auth import oauth2_scheme, settings, create_access_token, get_current_user, get_user_by_refresh_token, verify_password, get_user
+from fastapi import Depends, APIRouter, HTTPException, status
+
 from sqlalchemy.orm import Session
-from dependencies.db import SessionLocal
 
-router = APIRouter(prefix="/auth",tags=["Authentication"])
+from ..dependencies.db import SessionLocal, get_db
+from ..services.auth import (oauth2_scheme,
+                             create_access_token, 
+                             get_user_by_refresh_token, 
+                             verify_password)
+from ..repository.users import UserRepository
+from ..schemas.user import UserCreate, User
 
-@router.post("/auth/signup", pass_credentials=True)
-async def signup():
-    pass
+router = APIRouter(prefix='/auth', tags=["auth"])
 
-@router.post("/auth/signin")
-async def signin(username: str, password: str, db: Session = Depends(SessionLocal)):
-    user = get_user(db, username)
-    if not user or not verify_password(password, user.password):
+@router.post('/signup', response_model=User, status_code=status.HTTP_201_CREATED)
+async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    user_repo = UserRepository(db)
+    user = await user_repo.create(**user_data.dict())
+    return user
+
+@router.post("/signin")
+async def signin(username: str, password: str, db: Session = Depends(get_db)):
+    user_repo = UserRepository(db)
+    user = user_repo.get_user(username)
+    
+    if not user or not user_repo.verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
-    return {"access_token": create_access_token(data={"sub": username}), "token_type": "bearer"}
+    
+    refresh_token = user_repo.create_refresh_token(user)
+    
+    return {"access_token": create_access_token(data={"sub": username}),
+            "refresh_token": refresh_token,
+            "token_type": "bearer"}
 
-@router.post("/auth/refresh_token")
+@router.post("/refresh_token")
 async def refresh_token(refresh_token: str = Depends(oauth2_scheme), db: Session = Depends(SessionLocal)):
-    user = await get_user_by_refresh_token(refresh_token, db)
+    user_repo = UserRepository(db)
+    user = await user_repo.get_user_by_refresh_token(refresh_token)
+    
     if not user:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    new_access_token = create_access_token(data={"sub": user.name})
+    new_access_token = create_access_token(data={"sub": user.username})
     return {"access_token": new_access_token, "token_type": "bearer"}
