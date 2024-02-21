@@ -1,8 +1,6 @@
-import bcrypt
 from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import (OAuth2PasswordRequestForm,
-                              HTTPAuthorizationCredentials,
                               HTTPBearer,
                               )
 
@@ -11,9 +9,10 @@ from ..services.auth import (oauth2_scheme,
                              create_refresh_token,
                              create_access_token, 
                              get_user_by_refresh_token, 
-                             verify_password)
+                            )
 from ..repository.users import UserRepository
 from ..schemas.user import UserCreate, User
+from ..services.hash_handler import hash_password, check_password
 
 
 router = APIRouter(prefix='/auth', tags=["auth"])
@@ -22,20 +21,19 @@ security = HTTPBearer()
 
 @router.post('/signup', response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    hashed_password = bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt())
-    user = await UserRepository(db).create(username=user_data.username, email=user_data.email, hashed_password=hashed_password.decode('utf-8'))
+    hashed_password = hash_password(user_data.password)
+    user = await UserRepository(db).create(username=user_data.username, email=user_data.email, hashed_password=hashed_password)
 
     return user
 
 
 @router.post("/signin", response_model=dict)
-async def signin(request_user: OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db)):
+async def signin(request_user: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = await UserRepository(db).get_username(request_user.username)
     
-    if not user or not verify_password(request_user.password, user.password):
+    if not user or not check_password(request_user.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    
     refresh_token = create_refresh_token({"sub": request_user.username})
 
     user_repo = UserRepository(db)

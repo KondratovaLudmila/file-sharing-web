@@ -4,10 +4,10 @@ from jose import JWTError, jwt, ExpiredSignatureError
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from ..dependencies.db import get_db, SessionLocal
-from ..models.user import User, Role
+from ..dependencies.db import get_db
 from ..conf.config import settings  
 from ..repository.users import UserRepository
+from ..services.hash_handler import check_password
 
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -22,7 +22,7 @@ def create_jwt_token(data: dict):
     return encoded_jwt
 
 def verify_password(plain_password, hashed_password):
-    return plain_password == hashed_password
+    return check_password(plain_password, hashed_password)
 
 
 def create_access_token(data: dict):
