@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from src.dependencies.db import get_db
-from src.routes import images, users, comment
+from src.routes import images, users, comment, auth
 
 
 app = FastAPI()
@@ -13,6 +13,7 @@ app = FastAPI()
 app.include_router(users.router)
 app.include_router(images.router)
 app.include_router(comment.router)
+app.include_router(auth.router)
 
 
 @app.post("/halthchecker")
