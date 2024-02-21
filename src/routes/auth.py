@@ -1,3 +1,4 @@
+import bcrypt
 from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import (OAuth2PasswordRequestForm,
@@ -21,7 +22,9 @@ security = HTTPBearer()
 
 @router.post('/signup', response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    user = await UserRepository(db).create(**user_data.dict())
+    hashed_password = bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt())
+    user = await UserRepository(db).create(username=user_data.username, email=user_data.email, hashed_password=hashed_password.decode('utf-8'))
+
     return user
 
 
