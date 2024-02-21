@@ -1,7 +1,11 @@
 from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
+from fastapi.security import (OAuth2PasswordRequestForm,
+                              HTTPAuthorizationCredentials,
+                              HTTPBearer,
+                              )
 
-from ..dependencies.db import SessionLocal, get_db
+from ..dependencies.db import get_db
 from ..services.auth import (oauth2_scheme,
                              create_refresh_token,
                              create_access_token, 
@@ -10,7 +14,10 @@ from ..services.auth import (oauth2_scheme,
 from ..repository.users import UserRepository
 from ..schemas.user import UserCreate, User
 
+
 router = APIRouter(prefix='/auth', tags=["auth"])
+
+security = HTTPBearer()
 
 @router.post('/signup', response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -19,20 +26,20 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/signin", response_model=dict)
-async def signin(username: str, password: str, db: Session = Depends(get_db)):
-    user = await UserRepository(db).get_username(username)
+async def signin(request_user: OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db)):
+    user = await UserRepository(db).get_username(request_user.username)
     
-    if not user or not verify_password(password, user.password):
+    if not user or not verify_password(request_user.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     
-    refresh_token = create_refresh_token({"sub": username})
+    refresh_token = create_refresh_token({"sub": request_user.username})
 
     user_repo = UserRepository(db)
-    await user_repo.update(user, refresh_token=refresh_token)
+    user = await user_repo.update(user, refresh_token=refresh_token)
 
     return {
-        "access_token": create_access_token(data={"sub": username}),
+        "access_token": create_access_token(data={"sub": request_user.username}),
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
