@@ -5,11 +5,16 @@ from typing import List
 from ..schemas.user import UserCreate, UserUpdate, User
 from ..repository.users import UserRepository
 from ..dependencies.db import get_db
+from ..dependencies.roles import RoleAccess
+from ..models.user import Role
 
 router = APIRouter(prefix='/users', tags=["users"])
 
+# Implement role access
+allowed_action = RoleAccess([Role.admin, Role.moderator])
 
-@router.get('/', response_model=List[User])
+# Implement role access
+@router.get('/', response_model=List[User], dependencies=[Depends(allowed_action),])
 async def get_users(query: str = Query(..., min_length=1), db: Session = Depends(get_db)):
     user_repo = UserRepository(db)
     users = await user_repo.get_many(query)
