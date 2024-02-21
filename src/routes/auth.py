@@ -20,7 +20,7 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/signin", response_model=dict)
 async def signin(username: str, password: str, db: Session = Depends(get_db)):
-    user = UserRepository.get_user(db, username)
+    user = UserRepository(db).get_username(username)
     
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")

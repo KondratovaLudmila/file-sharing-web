@@ -49,7 +49,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     except JWTError:
         raise credentials_exception
 
-    return UserRepository.get_username(username)(db, username)
+    return UserRepository(db).get_username(username)
 
 async def get_user_by_refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -65,4 +65,4 @@ async def get_user_by_refresh_token(refresh_token: str, db: Session = Depends(ge
     except ExpiredSignatureError:
         raise credentials_exception
 
-    return UserRepository.get_username(username)(db, username)
+    return UserRepository(db).get_username(username)
