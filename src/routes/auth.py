@@ -1,5 +1,5 @@
 from fastapi import Depends, APIRouter, HTTPException
-from services.auth import oauth2_scheme,settings, create_access_token, get_current_user, get_user_by_refresh_token, verify_password, get_user
+from ..services.auth import oauth2_scheme, settings, create_access_token, get_current_user, get_user_by_refresh_token, verify_password, get_user
 from sqlalchemy.orm import Session
 from dependencies.db import SessionLocal
 

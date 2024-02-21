@@ -3,10 +3,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt, ExpiredSignatureError
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from dependencies.db import SessionLocal
-from models.user import User, Role
-from conf.config import settings  
-from routes.auth import router as auth
+from ..dependencies.db import SessionLocal
+from ..models.user import User, Role
+from ..conf.config import settings  
+from ..routes.auth import router as auth
 
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
