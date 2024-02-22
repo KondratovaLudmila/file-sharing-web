@@ -10,15 +10,16 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     email: EmailStr
-    password: str
 
 
-class UserInDBBase(UserCreate):
+class UserResponse(BaseModel):
     id: int
+    username: str
+    email: EmailStr
 
     class Config:
         orm_mode = True
 
 
-class User(UserInDBBase):
-    pass
+class UserUpdateResponse(UserResponse):
+    avatar: str
