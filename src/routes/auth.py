@@ -11,19 +11,27 @@ from ..services.auth import (oauth2_scheme,
                              get_user_by_refresh_token, 
                             )
 from ..repository.users import UserRepository
-from ..schemas.user import UserCreate, User
 from ..services.hash_handler import hash_password, check_password
+from ..schemas.user import UserCreate, UserResponse
 
 
 router = APIRouter(prefix='/auth', tags=["auth"])
 
 security = HTTPBearer()
 
-@router.post('/signup', response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post('/signup', response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    hashed_password = hash_password(user_data.password)
-    user = await UserRepository(db).create(username=user_data.username, email=user_data.email, hashed_password=hashed_password)
+    existing_username_user = await UserRepository(db).get_username(user_data.username)
+    if existing_username_user:
+        raise HTTPException(status_code=409, detail="User with the same username already exists.")
 
+    existing_email_user = await UserRepository(db).get_email(user_data.email)
+    if existing_email_user:
+        raise HTTPException(status_code=409, detail="User with the same email already exists.")
+    
+    user_data.password = hash_password(user_data.password)
+    user = await UserRepository(db).create(**user_data.dict())
+    
     return user
 
 
