@@ -16,5 +16,5 @@ class Comment(Base):
     image_id = Column(Integer, ForeignKey('images.id'))  
     image = relationship("Image", back_populates="comments")
 
-    # user = relationship("User", back_populates="comments")
-    # user_id = Column("user_id", ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column("user_id", ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user = relationship("User", back_populates="comments")
