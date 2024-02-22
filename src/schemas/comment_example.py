@@ -6,10 +6,12 @@ class CommentBase(BaseModel):
 
 class CommentCreate(CommentBase):
     image_id: int
+    user_id: int
 
 class Comment(CommentBase):
     id: int
     image_id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
 
