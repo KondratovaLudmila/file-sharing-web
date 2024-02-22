@@ -1,7 +1,6 @@
 from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import (OAuth2PasswordRequestForm,
-                              HTTPAuthorizationCredentials,
                               HTTPBearer,
                               )
 
@@ -10,8 +9,9 @@ from ..services.auth import (oauth2_scheme,
                              create_refresh_token,
                              create_access_token, 
                              get_user_by_refresh_token, 
-                             verify_password)
+                            )
 from ..repository.users import UserRepository
+from ..services.hash_handler import hash_password, check_password
 from ..schemas.user import UserCreate, UserResponse
 
 
@@ -28,18 +28,20 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
     existing_email_user = await UserRepository(db).get_email(user_data.email)
     if existing_email_user:
         raise HTTPException(status_code=409, detail="User with the same email already exists.")
+    
+    user_data.password = hash_password(user_data.password)
     user = await UserRepository(db).create(**user_data.dict())
+    
     return user
 
 
 @router.post("/signin", response_model=dict)
-async def signin(request_user: OAuth2PasswordRequestForm=Depends(), db: Session = Depends(get_db)):
+async def signin(request_user: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = await UserRepository(db).get_username(request_user.username)
     
-    if not user or not verify_password(request_user.password, user.password):
+    if not user or not check_password(request_user.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    
     refresh_token = create_refresh_token({"sub": request_user.username})
 
     user_repo = UserRepository(db)
