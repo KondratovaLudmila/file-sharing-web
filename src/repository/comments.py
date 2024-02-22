@@ -3,7 +3,7 @@ from ..schemas.comment_example import CommentCreate, Comment
 
 from .base_repository import AbstractRepository
 from ..models.comment import Comment
-from ..models.user import User
+from ..models.user import User, Role
 
 
 class CommentsRepo(AbstractRepository):
@@ -13,11 +13,11 @@ class CommentsRepo(AbstractRepository):
         self.user = user
         super().__init__(db)
 
-    async def create(self, comment_data: CommentCreate, image_id: int):
+    async def create(self, body: str, image_id: int, user_id: int):
         new_comment = Comment(
-            body=comment_data.body, 
-            image_id=comment_data.image_id,
-            # user_id=user.id  # Переконайтеся, що self.user існує і має атрибут id
+            body=body, 
+            image_id=image_id,
+            user_id=user_id
         )
         self.db.add(new_comment)
         self.db.commit()
@@ -48,5 +48,9 @@ class CommentsRepo(AbstractRepository):
             self.db.commit()
             return True
         return False
+
+    async def can_edit_comment(self, user: User, comment: Comment) -> bool:
+        return user.id == comment.user_id
     
-    # Comment.user_id == self.user.id
+    async def can_delete_comment(self, user: User) -> bool:
+        return user.role in {Role.admin, Role.moderator}
