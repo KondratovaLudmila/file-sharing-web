@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr
+from typing import Union, Optional
+from ..models.user import Role
 
 
 class UserCreate(BaseModel):
@@ -11,15 +13,17 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr
 
-
 class UserResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
+    role: Union[Role, str]
 
     class Config:
         orm_mode = True
 
+class UserBan(UserResponse):
+    ban: bool = False
 
 class UserUpdateResponse(UserResponse):
     avatar: str
