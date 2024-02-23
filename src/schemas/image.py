@@ -114,5 +114,13 @@ class ImageTransfornModel(BaseModel):
         use_enum_values = True
 
 
+class ImageShareModel(BaseModel):
+    identifier: str
+
+
+class ImageShareResponseModel(BaseModel):
+    url: str
+    description: str
+
 
 
