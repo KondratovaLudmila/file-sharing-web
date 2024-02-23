@@ -1,9 +1,29 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Path, Query, UploadFile, File, Form
+from fastapi import (APIRouter, 
+                     HTTPException,
+                     Depends, 
+                     Request, 
+                     status, 
+                     Path, 
+                     Query, 
+                     UploadFile, 
+                     File, 
+                     Form,
+                     )
 from typing import List, Annotated
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+import qrcode
+import io
 
 
-from ..schemas.image import ImageResponseModel, ImageUpdate, ImageTransfornModel, ImageCreate, ImageCreateResponseModel
+from ..schemas.image import (ImageResponseModel, 
+                             ImageUpdate, 
+                             ImageTransfornModel, 
+                             ImageCreate, 
+                             ImageCreateResponseModel,
+                             ImageShareModel,
+                             ImageShareResponseModel,
+                             )
 from ..dependencies.db import get_db
 from ..repository.images import Images as ImagesRepo
 from ..repository.tags import Tags as TagsRepo
@@ -77,15 +97,24 @@ async def transform_image(image_id: int,
     
     return image
 
-
-# @router.post('/{image_id}/qr', response_model=ImageResponseModel)
-# async def transform_image(image_id: int, transform_model: ImageTransfornModel, db: Session=Depends(get_db)):
-#     # Temporary
-#     user = db.query(User).filter().first()
+@router.post('/share/qr', dependencies=[Depends(get_current_user)])
+async def share_image(body: ImageShareModel, 
+                      request: Request, 
+                      ):
+    url = str(request.base_url) + 'images/share/' + body.identifier
     
-#     image = await ImagesRepo(user, db).transform(image_id, transform_model)
+    qr = qrcode.make(url)
+    buf = io.BytesIO()
+    qr.save(buf)
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="image/jpeg")
 
-#     if not image:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
 
-#     return image
+@router.get('/share/{identifier}', response_model=ImageShareResponseModel)
+async def get_shared_image(identifier: str, db: Session=Depends(get_db)):
+    image = await ImagesRepo(None, db).identify(identifier)
+
+    if not image:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
+
+    return image
