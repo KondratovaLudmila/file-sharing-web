@@ -39,7 +39,7 @@ async def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
 async def signin(request_user: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = await UserRepository(db).get_username(request_user.username)
     
-    if not user or not check_password(request_user.password, user.hashed_password):
+    if not user or not check_password(request_user.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     refresh_token = create_refresh_token({"sub": request_user.username})
