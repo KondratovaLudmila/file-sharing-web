@@ -4,9 +4,9 @@ from sqlalchemy import update
 from uuid import uuid4
 
 from .base_repository import AbstractRepository
-from ..models.image import Image
+from ..models.image import Image, Tag
 from ..models.user import User
-from ..schemas.image import ImageDescriptionUpdate, ImageTransfornModel
+from ..schemas.image import ImageUpdate, ImageTransfornModel
 from ..services.media_storage import storage
 
 
@@ -18,7 +18,7 @@ class Images(AbstractRepository):
         super().__init__(db)
         
 
-    async def create(self, file: str, description: str) -> Image:
+    async def create(self, file: str, description: str, tags: [Tag]) -> Image:
         """
         The create function creates a new image for the user.
         
@@ -31,7 +31,11 @@ class Images(AbstractRepository):
         identifier = uuid4().hex
         public_id = storage.get_public_id(self.user.username, identifier)
         img = await storage.user_image_upload(file, public_id)
-        image = self.model(user=self.user, url=img.url, identifier=identifier, description=description)
+        image = self.model(user=self.user, 
+                           url=img.url, 
+                           identifier=identifier, 
+                           description=description, 
+                           tags=tags)
 
         self.db.add(image)
         self.db.commit()
@@ -40,7 +44,7 @@ class Images(AbstractRepository):
         return image
     
 
-    async def update(self, pk: int, image_model: ImageDescriptionUpdate):
+    async def update(self, pk: int, image_model: ImageUpdate):
         """
         The update method updates image filds.
         
@@ -56,6 +60,7 @@ class Images(AbstractRepository):
             return None
         
         image.description = image_model.description
+        image.tags = image_model.tags
         self.db.commit()
 
         return image
@@ -96,11 +101,15 @@ class Images(AbstractRepository):
         """
         
         image = self.db.get(self.model, pk)
+        
+        return image
+    
+    async def get_user_single(self, pk: int) -> Image:
+        image = self.db.get(self.model, pk)
         if not image or image.user != self.user:
             return None
         
         return image
-    
 
     async def get_many(self):
         """
@@ -109,7 +118,7 @@ class Images(AbstractRepository):
         :param self: Represent the instance of the class
         :return: A list of objects
         """
-        images = self.db.query(self.model).filter(self.model.user==self.user).all()
+        images = self.db.query(self.model).filter().all()
 
         return images
     

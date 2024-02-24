@@ -40,8 +40,3 @@ class Tag(Base):
 
     name = Column(String(25), nullable=False, unique=True)
 
-
-
-
-
-

@@ -7,9 +7,8 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
-
-
-
+      
+      
 class UserUpdate(BaseModel):
     email: EmailStr
 
@@ -20,10 +19,13 @@ class UserResponse(BaseModel):
     role: Union[Role, str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserBan(UserResponse):
     ban: bool = False
+    
+    class Config
+        from_attributes = True
 
 class UserUpdateResponse(UserResponse):
     avatar: str
