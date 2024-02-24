@@ -80,7 +80,7 @@ class UserRepository(AbstractRepository):
         ).all()
         return users
 
-    async def ban_user(self, user_id: int) -> User:
+    async def ban(self, user_id: int) -> User:
         user = await self.get_single(user_id)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
@@ -90,7 +90,7 @@ class UserRepository(AbstractRepository):
         return user
 
 
-    async def change_user_role(self, user_id: int, new_role: Role) -> Optional[User]:
+    async def change_role(self, user_id: int, new_role: Role) -> Optional[User]:
         user = await self.get_single(user_id)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
