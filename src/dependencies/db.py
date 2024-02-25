@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
+from contextlib import contextmanager
 
 from ..models.base import Base
 
@@ -18,10 +19,18 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Dependency
-def get_db():
-    db = SessionLocal()
+@contextmanager
+def session():
+    session = SessionLocal()
     try:
-        yield db
+        yield session
+    except Exception as err:
+        print(err)
+        session.rollback()
     finally:
-        db.close()
+        session.close()
+
+def get_db():
+    with session() as db:
+        yield db
 
