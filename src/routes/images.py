@@ -39,8 +39,10 @@ allowed_action = OwnerRoleAccess(permited_roles=[Role.admin,],
                                  param_name='image_id')
 
 @router.get('/', response_model=List[ImageResponseModel])
-async def get_images(user: User=Depends(get_current_user), db: Session=Depends(get_db)):
-    images = await ImagesRepo(user, db).get_many()
+async def get_images(offset: int=0, limit: int=0,
+                     user: User=Depends(get_current_user), 
+                     db: Session=Depends(get_db)):
+    images = await ImagesRepo(user, db).get_many(offset, limit)
     return images
 
 
@@ -58,7 +60,8 @@ async def create_image(image_form: ImageCreate=Depends(ImageCreate.as_form),
 
 
 @router.patch('/{image_id}', response_model=ImageResponseModel, dependencies=[Depends(allowed_action),])
-async def update_image_description(body: ImageUpdate, image_id: int, 
+async def update_image_description(body: ImageUpdate, 
+                                   image_id: int, 
                                    user: User=Depends(get_current_user),
                                    db: Session=Depends(get_db)):
     
@@ -78,7 +81,7 @@ async def delete_image(image_id: int,
                        ):
     image = await ImagesRepo(user, db).delete(image_id)
 
-    if not image:
+    if image is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
     
     return image
@@ -92,16 +95,23 @@ async def transform_image(image_id: int,
     
     image = await ImagesRepo(user, db).transform(image_id, transform_model)
 
-    if not image:
+    if image is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
     
     return image
 
-@router.post('/share/qr', dependencies=[Depends(get_current_user)])
-async def share_image(body: ImageShareModel, 
+
+@router.get('/{image_id}/share')
+async def share_image(image_id: int,
                       request: Request, 
+                      user: User=Depends(get_current_user),
+                      db: Session=Depends(get_db)
                       ):
-    url = str(request.base_url) + 'images/share/' + body.identifier
+    image = await ImagesRepo(user, db).get_single(image_id)
+    if image is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
+    
+    url = str(request.base_url) + 'images/shared/' + image.identifier
     
     qr = qrcode.make(url)
     buf = io.BytesIO()
@@ -110,11 +120,11 @@ async def share_image(body: ImageShareModel,
     return StreamingResponse(buf, media_type="image/jpeg")
 
 
-@router.get('/share/{identifier}', response_model=ImageShareResponseModel)
+@router.get('/shared/{identifier}', response_model=ImageShareResponseModel)
 async def get_shared_image(identifier: str, db: Session=Depends(get_db)):
     image = await ImagesRepo(None, db).identify(identifier)
 
-    if not image:
+    if image is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found!")
 
     return image
