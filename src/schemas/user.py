@@ -24,7 +24,7 @@ class UserResponse(BaseModel):
 class UserBan(UserResponse):
     ban: bool = False
     
-    class Config
+    class Config:
         from_attributes = True
 
 class UserUpdateResponse(UserResponse):
