@@ -50,9 +50,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise credentials_exception
+    
+    cur_user = await UserRepository(db).get_username(username)
+    if cur_user.ban:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is banned")
 
-
-    return await UserRepository(db).get_username(username)
+    return cur_user
 
 async def get_user_by_refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -69,5 +72,9 @@ async def get_user_by_refresh_token(refresh_token: str, db: Session = Depends(ge
         raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
+    
+    cur_user = await UserRepository(db).get_username(username)
+    if cur_user.ban:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is banned")
 
-    return await UserRepository(db).get_username(username)
+    return cur_user

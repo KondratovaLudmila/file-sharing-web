@@ -24,7 +24,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 fake_user = {"username": "user", "email": "user@gmail.com", "password": "password", "role": Role.user}
 fake_admin = {"username": "admin", "email": "admin@gmail.com", "password": "password", "role": Role.admin}
-fake_image = {"url": "www.ttt.com/folder/image.jpeg", "description": "my_desk", "user_id": 1}
+fake_image = {"url": "www.ttt.com/folder/image.jpeg", "description": "my_desk"}
 
 class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
     @classmethod
@@ -46,13 +46,16 @@ class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
         if self.user is None:
             self.user = User(**fake_user)
             self.admin = User(**fake_admin)
-            self.image = Image(**fake_image)
             self.db.add(self.user)
             self.db.add(self.admin)
-            self.db.add(self.image)
             self.db.commit()
             self.db.refresh(self.user)
             self.db.refresh(self.admin)
+
+            self.image = Image(user_id=self.admin.id, **fake_image)
+            self.db.add(self.image)
+            self.db.commit()
+            self.db.refresh(self.image)
 
     def tearDown(self) -> None:
         self.db.close()
@@ -72,10 +75,10 @@ class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
     async def test_resourse_owner_permited(self):
         image_id = 1
         result = await OwnerRoleAccess([Role.admin,], 
-                                 repository=Images, 
-                                 param_name="image_id")(MagicMock(path_params={"image_id": image_id}),
-                                                        user=self.admin,
-                                                        db=self.db)
+                                    repository=Images, 
+                                    param_name="image_id")(MagicMock(path_params={"image_id": image_id}),
+                                                            user=self.admin,
+                                                            db=self.db)
         
         self.assertEqual(result, True)
 
@@ -83,11 +86,12 @@ class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
     async def test_resource_owner_denied(self):
         image_id = 1
         with self.assertRaises(HTTPException) as err:
-            await OwnerRoleAccess([Role.moderator,],
+            result = await OwnerRoleAccess([Role.moderator,],
                                  repository=Images, 
                                  param_name="image_id")(MagicMock(path_params={"image_id": image_id}),
-                                                        user=self.admin,
+                                                        user=self.user,
                                                         db=self.db) 
+            
 
     async def test_resource_owner_wrong(self):
         with self.assertRaises(HTTPException) as err:
