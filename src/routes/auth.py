@@ -54,7 +54,7 @@ async def signin(request_user: OAuth2PasswordRequestForm = Depends(), db: Sessio
     }
 
 
-@router.post("/refresh_token")
+@router.get("/refresh_token")
 async def refresh_token(refresh_token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user = await get_user_by_refresh_token(refresh_token, db)
     if not user:

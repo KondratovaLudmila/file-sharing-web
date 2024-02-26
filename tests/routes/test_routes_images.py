@@ -105,11 +105,40 @@ def test_image_transform_wrong(client, monkeypatch):
 
 
 def test_image_share(client, monkeypatch):
-    mock_upload = AsyncMock()
-    mock_upload.return_value = MagicMock(**fake_image)
-    monkeypatch.setattr("src.repository.images.Images.get_single", mock_upload)
+    mock_get = AsyncMock()
+    mock_get.return_value = MagicMock(**fake_image)
+    monkeypatch.setattr("src.repository.images.Images.get_single", mock_get)
 
-    response = client.post("/images/1/share")
+    response = client.get("/images/1/share")
 
     assert response.status_code == 200, response.text
 
+
+def test_image_share_wrong(client, monkeypatch):
+    mock_get = AsyncMock()
+    mock_get.return_value = None
+    monkeypatch.setattr("src.repository.images.Images.get_single", mock_get)
+
+    response = client.get("/images/10/share")
+
+    assert response.status_code == 404, response.text
+
+
+def test_image_shared_get_wrong(client, monkeypatch):
+    mock_get = AsyncMock()
+    mock_get.return_value = None
+    monkeypatch.setattr("src.repository.images.Images.identify", mock_get)
+
+    response = client.get("/images/shared/abracadabra")
+
+    assert response.status_code == 404, response.text
+
+
+def test_image_shared_get(client, monkeypatch):
+    mock_get = AsyncMock()
+    mock_get.return_value = MagicMock(**fake_image)
+    monkeypatch.setattr("src.repository.images.Images.identify", mock_get)
+    identifier = fake_image.get("identifier")
+    response = client.get(f"/images/shared/{identifier}")
+
+    assert response.status_code == 200, response.text
