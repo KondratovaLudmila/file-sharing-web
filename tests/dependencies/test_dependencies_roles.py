@@ -24,7 +24,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 fake_user = {"username": "user", "email": "user@gmail.com", "password": "password", "role": Role.user}
 fake_admin = {"username": "admin", "email": "admin@gmail.com", "password": "password", "role": Role.admin}
-fake_image = {"url": "www.ttt.com/folder/image.jpeg", "description": "my_desk", "user_id": 2}
+fake_image = {"url": "www.ttt.com/folder/image.jpeg", "description": "my_desk", "user_id": 1}
 
 class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
     @classmethod
@@ -83,10 +83,10 @@ class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
     async def test_resource_owner_denied(self):
         image_id = 1
         with self.assertRaises(HTTPException) as err:
-            await OwnerRoleAccess([Role.admin,],
+            await OwnerRoleAccess([Role.moderator,],
                                  repository=Images, 
                                  param_name="image_id")(MagicMock(path_params={"image_id": image_id}),
-                                                        user=self.user,
+                                                        user=self.admin,
                                                         db=self.db) 
 
     async def test_resource_owner_wrong(self):
