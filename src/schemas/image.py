@@ -67,7 +67,7 @@ class ImageCreate(BaseModel):
             )
         for tag in tags:
             l = len(tag)
-            if l < 25 and l > 0:
+            if l > 25 or l < 1:
                 raise HTTPException(
                 detail=jsonable_encoder("Length of each tag shoul be from 1 to 25 characters"),
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -78,7 +78,10 @@ class ImageCreate(BaseModel):
     @classmethod
     def as_form(cls, file: UploadFile, description: str=Form(max_length=250), tags: List[str]=Form([])):
         try:
-            tags = tags[0].split(',')
+            if tags[0]:
+                tags = tags[0].split(',')
+            else:
+                tags = []
         except ValidationError as e:
             raise HTTPException(
                 detail=jsonable_encoder(e.errors()),

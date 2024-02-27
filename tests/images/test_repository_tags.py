@@ -81,7 +81,7 @@ class TestTags(unittest.IsolatedAsyncioTestCase):
 
 
     async def test_tag_get_single_wrong(self):
-        name = name = "abracadabra"
+        name = "abracadabra"
         tag = await Tags(self.db).get_single(name)
 
         self.assertIsNone(tag)
@@ -133,6 +133,22 @@ class TestTags(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(tags[0].id, test_tags[0].id)
         self.assertEqual(tags[1].id, test_tags[1].id)
 
+
+    async def test_tag_delete_unused(self):
+        names = ["tag1", "tag101"]
+        test_tags = []
+        for name in names:
+            test_tag = self.db.query(Tag).filter(Tag.name==name).first()
+            if test_tag is None:
+                test_tag = await Tags(self.db).create(name)
+            
+            test_tags.append(test_tag)
+
+        await Tags(self.db).delete_unused(test_tags)
+
+        tags = await Tags(self.db).get_many(names)
+
+        self.assertEqual(tags, [])
     
 
 if __name__ == '__main__':

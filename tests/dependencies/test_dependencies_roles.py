@@ -39,8 +39,8 @@ class TestRoleAccess(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
         self.db = TestingSessionLocal()
-        self.user = self.db.get(User, 1)
-        self.admin = self.db.get(User, 2)
+        self.user = self.db.query(User).filter(User.username==fake_user["username"]).first()
+        self.admin = self.db.query(User).filter(User.username==fake_admin["username"]).first()
         self.image = self.db.get(Image, 1)
 
         if self.user is None:

@@ -1,6 +1,6 @@
-from fastapi import Depends, APIRouter, HTTPException, status
+from fastapi import Depends, APIRouter, HTTPException, Security, status
 from sqlalchemy.orm import Session
-from fastapi.security import (OAuth2PasswordRequestForm,
+from fastapi.security import (HTTPAuthorizationCredentials, OAuth2PasswordRequestForm,
                               HTTPBearer,
                               )
 
@@ -55,8 +55,8 @@ async def signin(request_user: OAuth2PasswordRequestForm = Depends(), db: Sessio
 
 
 @router.get("/refresh_token")
-async def refresh_token(refresh_token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    user = await get_user_by_refresh_token(refresh_token, db)
+async def refresh_token(credentials: HTTPAuthorizationCredentials=Security(security), db: Session = Depends(get_db)):
+    user = await get_user_by_refresh_token(credentials.credentials, db)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
