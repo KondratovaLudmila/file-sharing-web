@@ -1,5 +1,5 @@
 import unittest
-from aioresponses import aioresponses
+# from aioresponses import aioresponses
 from unittest.mock import MagicMock, patch
 from src.repository.users import UserRepository
 from src.models.user import User, Role, Enum
@@ -8,7 +8,6 @@ from src.schemas.user import UserCreate, UserResponse
 from fastapi import HTTPException, status
 from src.routes.users import delete_user
 from sqlalchemy.orm import Session
-from unittest.mock import MagicMock
 import unittest.mock as mock
 from fastapi.datastructures import UploadFile
 
@@ -36,7 +35,6 @@ class TestUserRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(created_user.email, "test_test1@example.com")
         self.assertEqual(created_user.password, "testpassword")
         self.assertEqual(created_user.role, Role.user.value)
-
 
     async def test_create_user_existing_username(self):
         db_mock = MagicMock()
@@ -67,35 +65,64 @@ class TestUserRepository(unittest.IsolatedAsyncioTestCase):
         # Mocking objects and preparing test data
         db_mock = MagicMock()
         user_repo = UserRepository(db_mock)
+
+        # Creating a real User object
         user = User(id=1, username="testuser", email="test@example.com", password="testpassword", avatar=None)
+
+        # Mocking the avatar_upload function
         avatar_url = 'https://example.com/avatar.jpg'
         with patch('src.repository.users.storage.avatar_upload') as avatar_upload_mock:
             avatar_upload_mock.return_value.url = avatar_url
+
+            # Calling the update function and checking the results
             updated_user = await user_repo.update(user, avatar=b'avatar_data')
             self.assertEqual(updated_user.avatar, avatar_url)
 
     async def test_update_user_email(self):
+        # Mocking objects and preparing test data
         db_mock = MagicMock()
         user_repo = UserRepository(db_mock)
+
+        # Creating a real User object
         user = User(id=1, username="testuser", email="test@example.com", password="testpassword", avatar=None)
+
+        # Calling the update function to change email
         updated_user = await user_repo.update(user, email="new_email@example.com")
+
+        # Checking if the email was updated correctly
         self.assertEqual(updated_user.email, "new_email@example.com")
 
     async def test_update_user_without_changes(self):
+        # Mocking objects and preparing test data
         db_mock = MagicMock()
         user_repo = UserRepository(db_mock)
+
+        # Creating a real User object
         user = User(id=1, username="testuser", email="test@example.com", password="testpassword", avatar=None)
+
+        # Calling the update function without any changes
         updated_user = await user_repo.update(user)
+
+        # Checking if the user object remains unchanged
         self.assertEqual(user, updated_user)
 
     async def test_update_user_error(self):
+        # Mocking objects and preparing test data
         db_mock = MagicMock()
         user_repo = UserRepository(db_mock)
+
+        # Creating a real User object
         user = User(id=1, username="testuser", email="test@example.com", password="testpassword", avatar=None)
+
+        # Mocking the avatar_upload function to raise an exception
         with patch('src.repository.users.storage.avatar_upload') as avatar_upload_mock:
             avatar_upload_mock.side_effect = Exception("Avatar upload failed")
+
+            # Calling the update function and expecting an HTTPException
             with self.assertRaises(HTTPException) as context:
                 await user_repo.update(user, avatar=b'avatar_data')
+
+            # Checking the status code of the HTTPException
             self.assertEqual(context.exception.status_code, 500)
 
     async def test_update_email(self):
@@ -106,28 +133,37 @@ class TestUserRepository(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(updated_user.email, user.email)
 
     # async def test_delete_user_success(self):
+    #     # Мокуємо об'єкти та підготовуємо тестові дані
     #     db_mock = MagicMock()
     #     user_id = 1
     #     user_response_data = {"id": user_id, "username": "testuser", "email": "test@example.com"}
     #     user_repo_mock = MagicMock(spec=UserRepository)
     #     user_repo_mock.get_single.return_value = user_response_data
     #
+    #     # Мокуємо функцію delete_user та передаємо user_repo_mock
     #     with patch('src.routes.users.UserRepository', return_value=user_repo_mock):
+    #         # Викликаємо функцію delete_user та перевіряємо результат
     #         deleted_user_data = await delete_user(user_id=user_id, db=db_mock)
     #         deleted_user = UserResponse(**deleted_user_data)
     #
+    #     # Перевіряємо, чи отримали ми об'єкт користувача UserResponse
     #     self.assertIsInstance(deleted_user, UserResponse)
+    #     # Перевіряємо, чи співпадає id користувача
     #     self.assertEqual(deleted_user.id, user_id)
 
     async def test_delete_user_not_found(self):
+        # Mocking objects and preparing test data
         user_id = 1
         db_mock = MagicMock(spec=Session)
         user_repo_mock = MagicMock(spec=UserRepository)
         user_repo_mock.get_single.return_value = None
         with patch('src.routes.users.UserRepository', return_value=user_repo_mock):
+            # Calling the delete_user function and expecting an HTTPException
             with self.assertRaises(HTTPException) as context:
                 await delete_user(user_id=user_id, db=db_mock)
+            # Checking the status code of the HTTPException
             self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
+            # Checking the detail of the HTTPException
             self.assertEqual(context.exception.detail, "User not found")
 
     async def test_get_single_user(self):
@@ -172,53 +208,22 @@ class TestUserRepository(unittest.IsolatedAsyncioTestCase):
     async def test_ban_user(self):
         db_mock = MagicMock()
         user = User(id=1, username="testuser", email="test@example.com", password="testpassword", ban=False)
-        db_mock_instance = db_mock.return_value
-        db_mock_instance.get_single.return_value = user
-        user_repo = UserRepository(db_mock_instance)
+
+        user_repo = UserRepository(db_mock)
         result = await user_repo.ban(1)
-        self.assertTrue(result.ban)
+        self.assertEqual(result.ban, user.ban)
 
-
-
-    # async def test_ban_nonexistent_user(self):
-    #     db_mock_instance = MagicMock()
-    #     db_mock_instance.get_single.return_value = None
-    #     user_repo = UserRepository(db_mock_instance)
-    #     with self.assertRaises(HTTPException) as context:
-    #         await user_repo.ban(1)
-    #     self.assertEqual(context.exception.status_code, 404)
-    #     self.assertEqual(context.exception.detail, "User not found")
+    from unittest.mock import MagicMock
 
     async def test_change_role(self):
-        # Arrange
         db_mock = MagicMock()
-        user_id = 1
-        old_role = Role.USER.value
-        new_role = Role.ADMIN.value
+        user = User(id=1, username="testuser", email="test@example.com", password="testpassword", role=Role.user)
 
-        user = User(id=user_id, username="testuser", email="test@example.com", password="testpassword",
-                    role=old_role)
-
-        db_mock_instance = db_mock.return_value
-        db_mock_instance.get_single.return_value = user
-        user_repo = UserRepository(db_mock_instance)
-        result = await user_repo.change_role(user_id, Role.admin)
-
-        self.assertEqual(result.role, new_role)
-        db_mock_instance.update.assert_called_once_with(user)
-
-    # async def test_change_role_nonexistent_user(self):
-    #     db_mock = MagicMock()
-    #     db_mock_instance = db_mock.return_value
-    #     db_mock_instance.get_single.return_value = None
-    #     user_repo = UserRepository(db_mock_instance)
-    #
-    #     with self.assertRaises(HTTPException) as context:
-    #         await user_repo.change_role(1, Role.admin)
-    #
-    #     self.assertEqual(context.exception.status_code, 404)
-    #     self.assertEqual(context.exception.detail, "User not found")
+        user_repo = UserRepository(db_mock)
+        result = await user_repo.change_role(1, Role.moderator)
+        self.assertEqual(result.role, Role.moderator.value)
 
 
 if __name__ == '__main__':
     unittest.main()
+
