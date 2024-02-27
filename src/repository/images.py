@@ -4,6 +4,7 @@ from sqlalchemy import update
 from uuid import uuid4
 
 from .base_repository import AbstractRepository
+from .tags import Tags
 from ..models.image import Image, Tag
 from ..models.user import User
 from ..schemas.image import ImageUpdate, ImageTransfornModel
@@ -58,11 +59,13 @@ class Images(AbstractRepository):
 
         if not image:
             return None
-        
+        tags = image.tags
         image.description = image_model.description
         image.tags = image_model.tags
         self.db.commit()
 
+        await Tags(self.db).delete_unused(tags)
+        
         return image
 
 
@@ -156,6 +159,14 @@ class Images(AbstractRepository):
 
 
     async def identify(self, identifier: str) -> Image | None:
+        """
+        The identify function is used to identify an image by its identifier.
+                
+        
+        :param self: Represent the instance of the class
+        :param identifier: str: Identify the image
+        :return: An image object or none if no image is found
+        """
         image = self.db.query(self.model).filter(self.model.identifier==identifier).first()
 
         return image

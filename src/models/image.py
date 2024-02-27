@@ -5,11 +5,10 @@ from .base import Base
 
 
 image_m2m_tag = Table(
-    "note_m2m_tag",
+    "image_m2m_tag",
     Base.metadata,
-    Column("id", Integer, primary_key=True),
-    Column("image_id", Integer, ForeignKey("images.id", ondelete="CASCADE")),
-    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE")),
+    Column("image_id", Integer, ForeignKey("images.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -28,7 +27,7 @@ class Image(Base):
     identifier = Column(String(40), unique=True)
     description = Column(String(250))
 
-    tags = relationship("Tag", secondary=image_m2m_tag, backref="images")
+    tags = relationship("Tag", secondary=image_m2m_tag, back_populates="images")
 
     comments = relationship("Comment", back_populates="image")
     
@@ -40,3 +39,4 @@ class Tag(Base):
 
     name = Column(String(25), nullable=False, unique=True)
 
+    images = relationship("Image", secondary=image_m2m_tag, back_populates="tags")

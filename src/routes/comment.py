@@ -30,18 +30,20 @@ async def create_comment_for_image(
 async def read_comment_for_image(
     image_id: int, 
     comment_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User=Depends(get_current_user),
 ):
-    comments = await CommentsRepo(User, db).get_single(image_id, comment_id)
+    comments = await CommentsRepo(user, db).get_single(image_id, comment_id)
     return comments
 
 
 @router.get("/{image_id}/comments/", response_model=List[Comment])
 async def read_all_comments_for_image(
     image_id: int, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User=Depends(get_current_user)
 ):
-    comments = await CommentsRepo(User, db).get_many(image_id)
+    comments = await CommentsRepo(user, db).get_many(image_id)
     return comments
 
 

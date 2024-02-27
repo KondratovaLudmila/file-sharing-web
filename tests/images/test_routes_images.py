@@ -40,14 +40,15 @@ def test_images_get(client):
 
 def test_image_update(client):
     body = {"description": "new_desc", "tags": ["tag1"]}
-    response = client.patch("/images/1", json=body)
+    response = client.put("/images/1", json=body)
 
     assert response.status_code == 200, response.text
+    assert response.json()["id"] == fake_image["id"]
 
 
 def test_image_update_wrong(client):
     body = {"description": "new_desc", "tags": ["tag1"]}
-    response = client.patch("/images/10", json=body)
+    response = client.put("/images/10", json=body)
 
     assert response.status_code == 404, response.text
 
@@ -56,6 +57,20 @@ def test_image_delete(client):
     response = client.delete("/images/1")
 
     assert response.status_code == 200, response.text
+    assert response.json()["id"] == fake_image["id"]
+
+
+def test_image_get(client):
+    response = client.get("/images/1")
+
+    assert response.status_code == 200, response.text
+    assert response.json()["id"] == fake_image["id"]
+
+
+def test_image_get(client):
+    response = client.get("/images/1")
+
+    assert response.status_code == 404, response.text
 
 
 def test_image_delete_wrong(client):
@@ -142,3 +157,23 @@ def test_image_shared_get(client, monkeypatch):
     response = client.get(f"/images/shared/{identifier}")
 
     assert response.status_code == 200, response.text
+
+
+def test_image_get(client, monkeypatch):
+    mock_get = AsyncMock()
+    mock_get.return_value = MagicMock(**fake_image)
+    monkeypatch.setattr("src.repository.images.Images.get_single", mock_get)
+    pk = fake_image.get("id")
+    response = client.get(f"/images/{pk}")
+
+    assert response.status_code == 200, response.text
+
+
+def test_image_get_wrong(client, monkeypatch):
+    mock_get = AsyncMock()
+    mock_get.return_value = None
+    monkeypatch.setattr("src.repository.images.Images.get_single", mock_get)
+    pk = 10
+    response = client.get(f"/images/{pk}")
+
+    assert response.status_code == 404, response.text
