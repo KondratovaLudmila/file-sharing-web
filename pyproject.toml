@@ -19,7 +19,12 @@ cloudinary = "^1.38.0"
 python-multipart = "^0.0.9"
 paramiko = "^3.4.0"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
+qrcode = "^7.4.2"
+pytest = "^8.0.2"
 
+[tool.poetry.group.test.dependencies]
+pytest-cov = "^4.1.0"
+httpx = "^0.26.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"

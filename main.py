@@ -16,6 +16,11 @@ app.include_router(comment.router)
 app.include_router(auth.router)
 
 
+@app.get("/")
+def read_root():
+    return {"message": "Hello from Koyeb"}
+
+
 @app.post("/halthchecker")
 async def halthchecker(db: Session=Depends(get_db)):
     """
@@ -39,4 +44,4 @@ async def halthchecker(db: Session=Depends(get_db)):
     return {"message": "Wellcome to ImageShare"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)

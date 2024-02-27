@@ -1,9 +1,6 @@
-from enum import Enum
-
 import cloudinary
 from cloudinary.uploader import upload_image, destroy
 from cloudinary import CloudinaryImage
-from cloudinary.exceptions import Error
 
 
 from src.conf.config import settings

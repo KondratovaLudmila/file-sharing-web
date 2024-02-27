@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
       
 class UserUpdate(BaseModel):
     email: EmailStr
+    
 
 class UserResponse(BaseModel):
     id: int
@@ -21,11 +22,13 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserBan(UserResponse):
     ban: bool = False
     
     class Config:
         from_attributes = True
+
 
 class UserUpdateResponse(UserResponse):
     avatar: str

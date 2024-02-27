@@ -103,22 +103,20 @@ class Images(AbstractRepository):
         image = self.db.get(self.model, pk)
         
         return image
-    
-    async def get_user_single(self, pk: int) -> Image:
-        image = self.db.get(self.model, pk)
-        if not image or image.user != self.user:
-            return None
-        
-        return image
 
-    async def get_many(self):
+
+    async def get_many(self, offset: int, limit: int, **filters):
         """
         The get_many function returns all images associated with a user.
         
         :param self: Represent the instance of the class
         :return: A list of objects
         """
-        images = self.db.query(self.model).filter().all()
+        images = self.db.query(self.model)
+        if filters:
+            images = images.filter_by(**filters)
+        
+        images = images.offset(offset).limit(limit).all()
 
         return images
     
@@ -156,6 +154,11 @@ class Images(AbstractRepository):
 
         return transformed_image
 
+
+    async def identify(self, identifier: str) -> Image | None:
+        image = self.db.query(self.model).filter(self.model.identifier==identifier).first()
+
+        return image
 
         
         
