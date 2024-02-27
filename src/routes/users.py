@@ -110,7 +110,7 @@ The get_user_by_username function is a coroutine that takes in a username and re
     return user
 
 
-@router.put('/{user_id}/ban', response_model=UserBan, dependencies=[Depends(allowed_action)])
+@router.patch('/{user_id}/ban', response_model=UserBan, dependencies=[Depends(allowed_action)])
 async def ban_user(user_id: int, db: Session = Depends(get_db)):
     """
 The ban_user function takes a user_id and bans the user with that id.
@@ -125,7 +125,7 @@ The ban_user function takes a user_id and bans the user with that id.
     return await user_repo.ban(user_id)
 
 
-@router.put('/{user_id}/role', response_model=UserResponse, dependencies=[Depends(allowed_action)])
+@router.patch('/{user_id}/role', response_model=UserResponse, dependencies=[Depends(allowed_action)])
 async def change_user_role(user_id: int, new_role: Role, db: Session = Depends(get_db)):
     """
 The change_user_role function changes the role of a user.
