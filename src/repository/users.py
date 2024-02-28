@@ -47,7 +47,7 @@ class UserRepository(AbstractRepository):
 
         :param self: Represent the instance of the class
         :param user: User: Get the user object from the database
-        :param **kwargs: Pass a variable number of keyword arguments to the function
+        :param kwargs: Pass a variable number of keyword arguments to the function
         :return: The updated user
         """
         for key, value in kwargs.items():
