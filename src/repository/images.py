@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import update
+from sqlalchemy import desc, or_
 from uuid import uuid4
 
 from .base_repository import AbstractRepository
 from .tags import Tags
 from ..models.image import Image, Tag
 from ..models.user import User
-from ..schemas.image import ImageUpdate, ImageTransfornModel
+from ..schemas.image import ImageUpdate, ImageTransfornModel, OrderBy
 from ..services.media_storage import storage
 
 
@@ -108,7 +108,7 @@ class Images(AbstractRepository):
         return image
 
 
-    async def get_many(self, offset: int, limit: int, **filters):
+    async def get_many(self, offset: int, limit: int, order_by: str, keyword: str, **filters):
         """
         The get_many function returns all images associated with a user.
         
@@ -118,8 +118,17 @@ class Images(AbstractRepository):
         images = self.db.query(self.model)
         if filters:
             images = images.filter_by(**filters)
-        
-        images = images.offset(offset).limit(limit).all()
+        if keyword:
+            images = images.join(Tag, self.model.tags, isouter=True)
+            images = images.filter(or_(self.model.description.like(f'%{keyword}%'), Tag.name.like(f'%{keyword}%')))
+        if order_by:
+            field, order = order_by.split()
+            if order=="desc":
+                images = images.order_by(getattr(self.model, field).desc())
+            else:
+                images = images.order_by(getattr(self.model, field))
+
+        images = images.group_by(self.model.id).offset(offset).limit(limit).all()
 
         return images
     
