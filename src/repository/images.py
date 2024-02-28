@@ -84,11 +84,13 @@ class Images(AbstractRepository):
         if not image:
             return None
         
+        tags = image.tags
         self.db.delete(image)
         self.db.commit()
 
         public_id = storage.get_public_id(self.user.username, image.identifier)
         await storage.remove_media(public_id)
+        await Tags(self.db).delete_unused(tags)
 
         return image
 
@@ -110,10 +112,20 @@ class Images(AbstractRepository):
 
     async def get_many(self, offset: int, limit: int, order_by: str, keyword: str, **filters):
         """
-        The get_many function returns all images associated with a user.
+        The get_many function is used to retrieve a list of images from the database.
+        The function takes in an offset, limit, order_by and keyword as parameters.
+        It also takes in filters which are passed into the filter_by method of SQLAlchemy's query object.
+        If there is a keyword provided then it will join on tags and search for that keyword within both the description field 
+        and tag name field of each image record. If there is an order by parameter then it will sort by that column either ascending or descending depending on what was specified after the column name (i.e &quot;id desc&quot;). Finally if all these conditions
         
-        :param self: Represent the instance of the class
-        :return: A list of objects
+        :param self: Access the attributes and methods of the class
+        :param offset: int: Specify the offset of the first row to return
+        :param limit: int: Limit the number of results returned
+        :param order_by: str: Sort the images by a certain field
+        :param keyword: str: Search for images by description or tag name
+        :param filters: Filter the images by tag
+        :return: A list of images from the database
+        :doc-author: Trelent
         """
         images = self.db.query(self.model)
         if filters:

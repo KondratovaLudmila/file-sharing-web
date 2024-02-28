@@ -19,7 +19,7 @@ class CommentsRepo(AbstractRepository):
                 Args:
                     body (str): The body of the comment.
                     image_id (int): The id of the image that this comment is associated with. 
-                        This is used to associate comments with images, and also to retrieve all comments for an image when needed.
+                    This is used to associate comments with images, and also to retrieve all comments for an image when needed.
                     user_id (int): The id of the user who created this comment.
         
         :param self: Represent the instance of the class
@@ -46,7 +46,7 @@ class CommentsRepo(AbstractRepository):
         
         :param self: Represent the instance of the class
         :param image_id: int: Filter the comments by image_id
-        :param comment_id: int: Filter the comment by id, and the image_id: int parameter is used to filter the comment by image_id
+        :param comment_id: int: Get the comment from the database using its id
         :return: A comment object
         :doc-author: Trelent
         """

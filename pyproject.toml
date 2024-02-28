@@ -28,6 +28,7 @@ httpx = "^0.26.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.4.3"
+sphinx = "^7.2.6"
 
 [build-system]
 requires = ["poetry-core"]

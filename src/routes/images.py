@@ -47,11 +47,15 @@ async def get_images(keyword: str | None=Query(max_length=25, default=None),
     """
     The get_images function returns a list of images.
     
-    :param offset: int: Specify the starting point for the query
+    :param keyword: str | None: Filter the images by keyword
+    :param default: Set a default value for the parameter
+    :param order_by: OrderBy: Specify the order in which to return images
+    :param offset: int: Skip the first n images
     :param limit: int: Limit the number of images returned
-    :param user: User: Get the current user
-    :param db: Session: Pass in the database session
-    :return: A list of images
+    :param user: User: Get the user's id from the database
+    :param db: Session: Pass the database session to the imagesrepo class
+    :return: A list of images objects
+    :doc-author: Trelent
     """
     images = await ImagesRepo(user, db).get_many(offset=offset,
                                                  limit=limit,
@@ -144,17 +148,12 @@ async def delete_image(image_id: int,
                        ):
     """
     The delete_image function deletes an image from the database.
-        Args:
-            image_id (int): The id of the image to delete.
-            user (User): The current logged in user, passed by dependency injection.
-            db (Session): A database session object, passed by dependency injection.
     
-    :param image_id: int: Specify the image to delete
+    :param image_id: int: Identify the image to be deleted
     :param user: User: Get the user object from the database
-    :param db: Session: Pass the database session to the function
-    :param : Get the image id from the url
+    :param db: Session: Pass in the database session to the function
+    :param: Get the image id from the url
     :return: The image that was deleted
-    :doc-author: Trelent
     """
     image = await ImagesRepo(user, db).delete(image_id)
 
