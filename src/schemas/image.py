@@ -9,6 +9,11 @@ from .tag import TagResponse
 from .comment_example import Comment 
 
 
+class OrderBy(str, Enum):
+    created_at_asc = "created_at asc"
+    created_at_desc = "created_at desc"
+
+
 class CropTransform(str, Enum):
     thumb = "thumb"
     fill = "fill"

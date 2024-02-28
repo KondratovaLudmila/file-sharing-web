@@ -3,7 +3,7 @@ from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from typing import List, Annotated
 
-from ..schemas.user import UserCreate, UserUpdate, UserResponse, UserUpdateResponse, UserBan
+from ..schemas.user import UserCreate, UserUpdate, UserResponse, UserUpdateResponse, UserBan, UserProfileResponse
 from ..repository.users import UserRepository
 from ..dependencies.db import get_db
 from ..dependencies.roles import RoleAccess
@@ -92,7 +92,7 @@ If no such user exists, it raises an HTTP 404 error.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
-@router.get('/profile/{username}', response_model=UserResponse, dependencies=[Depends(get_current_user)])
+@router.get('/profile/{username}', response_model=UserProfileResponse, dependencies=[Depends(get_current_user)])
 async def get_user_by_username(username: str, db: Session = Depends(get_db)):
     """
 The get_user_by_username function is a coroutine that takes in a username and returns the user object

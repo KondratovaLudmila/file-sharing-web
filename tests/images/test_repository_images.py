@@ -11,6 +11,7 @@ from src.models.user import User
 from src.models.image import Image
 from src.dependencies.db import Base
 from src.repository.images import Images
+from src.schemas.image import OrderBy
 
 import os
 import dotenv
@@ -20,9 +21,10 @@ dotenv.load_dotenv()
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
 port = os.getenv("POSTGRES_PORT")
-SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{user}:{password}@localhost:{port}/tests"
+#SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{user}:{password}@localhost:{port}/tests"
+SQLALCHEMY_DATABASE_URL="sqlite://"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -114,7 +116,8 @@ class TestImagesRepository(unittest.IsolatedAsyncioTestCase):
 
     async def test_image_get_many(self):
         images = await Images(self.user, self.db).get_many(0, 100, 
-                                                           description=fake_image["description"], 
+                                                           order_by=OrderBy.created_at_desc.value,
+                                                           keyword=fake_image["description"], 
                                                            url=fake_image["url"],
                                                            )
 

@@ -1,6 +1,7 @@
 import asyncio
 import unittest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
+from sqlalchemy.orm import Session
 
 from src.models.comment import Comment
 from src.models.user import User, Role
@@ -15,27 +16,34 @@ class TestCommentsRepo(unittest.IsolatedAsyncioTestCase):
     
     async def asyncSetUp(self):
         # Налаштування мокованих об'єктів
-        self.mock_async_session = AsyncMock()
+        #Тут мокається сессія бд
+        self.mock_session = MagicMock(spec=Session)
         self.mock_user = User(**fake_user_data)
         self.mock_comment = Comment(**fake_comment_data)
         self.mock_image = Image(**fake_image_data)
         
         # Створення екземпляру CommentsRepo з мокованою сесією
-        self.comments_repo = CommentsRepo(self.mock_user, self.mock_async_session)
+        # Оце не потрібно
+        self.comments_repo = CommentsRepo(self.mock_user, AsyncMock())
 
-    @patch('src.repository.comments.CommentsRepo.create')
-    async def test_create_comment(self, mock_create):
-        mock_create.return_value = self.mock_comment
-        result = await self.comments_repo.create(body=fake_comment_data['body'], image_id=fake_comment_data['image_id'])
-        self.assertEqual(result.body, fake_comment_data['body'])
-        mock_create.assert_awaited_once()
+    # Приклад 1
+    async def test_create_comment(self):
+        result = await CommentsRepo(self.mock_user, self.mock_session).create(body=fake_comment_data['body'], 
+                                                                              image_id=fake_comment_data['image_id'],
+                                                                              user_id=self.mock_user.id)
+        self.assertEqual(result.body, self.mock_comment.body)
+        self.assertEqual(result.image_id, self.mock_comment.image_id)
+        self.assertEqual(result.user_id, self.mock_comment.user_id)
+        
 
-    @patch('src.repository.comments.CommentsRepo.get_single')
-    async def test_get_comment(self, mock_get_single):
-        mock_get_single.return_value = self.mock_comment
-        result = await self.comments_repo.get_single(comment_id=fake_comment_data['id'])
-        self.assertEqual(result.id, fake_comment_data['id'])
-        mock_get_single.assert_awaited_once()
+    # Приклад 2
+    async def test_get_comment(self):
+        # Дужечки пишем усюди крім останнього
+        self.mock_session.query().filter().first.return_value = self.mock_comment
+        result = await CommentsRepo(self.mock_user, self.mock_session).get_single(image_id= self.mock_image.id,
+                                                                                  comment_id=self.mock_comment.id)
+        self.assertEqual(result.id, self.mock_comment.id)
+
 
     @patch('src.repository.comments.CommentsRepo.update')
     async def test_update_comment(self, mock_update):

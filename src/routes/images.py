@@ -21,7 +21,7 @@ from ..schemas.image import (ImageResponseModel,
                              ImageTransfornModel, 
                              ImageCreate, 
                              ImageCreateResponseModel,
-                             ImageShareModel,
+                             OrderBy,
                              ImageShareResponseModel,
                              )
 from ..dependencies.db import get_db
@@ -39,7 +39,9 @@ allowed_action = OwnerRoleAccess(permited_roles=[Role.admin,],
                                  param_name='image_id')
 
 @router.get('/', response_model=List[ImageResponseModel])
-async def get_images(offset: int=0, limit: int=0,
+async def get_images(keyword: str | None=Query(max_length=25, default=None),
+                     order_by: OrderBy=None,
+                     offset: int=0, limit: int=100,
                      user: User=Depends(get_current_user), 
                      db: Session=Depends(get_db)):
     """
@@ -51,7 +53,11 @@ async def get_images(offset: int=0, limit: int=0,
     :param db: Session: Pass in the database session
     :return: A list of images
     """
-    images = await ImagesRepo(user, db).get_many(offset, limit)
+    images = await ImagesRepo(user, db).get_many(offset=offset,
+                                                 limit=limit,
+                                                 order_by=order_by,
+                                                 keyword=keyword,
+                                                )
     return images
 
 
