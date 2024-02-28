@@ -1,6 +1,21 @@
 version: '3'
 services:
+
+  db:
+
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    networks:
+      - app-network
+
+
   app:
+
     build: .
     volumes:
       - .:/src
@@ -11,15 +26,30 @@ services:
       - .env
     depends_on:
       - db
+    networks:
+      - app-network
 
-  db:
-    image: postgres:13
+
+  test:
+  
+    build: .
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - .:/src
+      - ./migrations:/src/migrations
     environment:
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_DB: $POSTGRES_DB
+      POSTGRES_DB: test
+    depends_on:
+      - db
+    command: pytest /src/tests
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+
