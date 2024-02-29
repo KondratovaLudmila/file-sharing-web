@@ -102,4 +102,4 @@ class TestCommentsRepo(unittest.IsolatedAsyncioTestCase):
 
 
 if __name__ == '__main__':
-    asyncio.run(unittest.main())
+    unittest.main()
